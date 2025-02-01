@@ -16,8 +16,7 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    #vmImage: Hosted Agent
-    name: 'Azure Pipelines'
+    vmImage: 'Azure Pipelines'
   steps:
   - checkout: self
 
