@@ -1,1 +1,68 @@
 
+name: Create AKS Cluster and Deploy App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  create-aks-cluster-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Paso 1: Checkout del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Paso 2: Iniciar sesión en Azure
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Paso 3: Crear un clúster de AKS (si no existe)
+      - name: Create or Update AKS Cluster
+        run: |
+          az group create --name myResourceGroup --location eastus
+          az aks create --resource-group myResourceGroup --name myAKSCluster --node-count 1 --enable-addons monitoring --generate-ssh-keys
+
+      # Paso 4: Conectar kubectl al clúster de AKS
+      - name: Connect kubectl to AKS Cluster
+        run: |
+          az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
+
+      # Paso 5: Verificar que el clúster esté funcionando
+      - name: Verify AKS Cluster
+        run: |
+          kubectl get nodes
+
+      # Paso 6: Construir y empujar la imagen Docker al Registro de Contenedores de Azure (ACR)
+      - name: Build and Push Docker Image to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/myapp:latest .
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/myapp:latest
+
+      # Paso 7: Desplegar la aplicación en AKS
+      - name: Deploy Application to AKS
+        run: |
+          kubectl apply -f ./k8s/deployment.yaml
+
+      # Paso 8: Verificar el estado de los pods
+      - name: Check Pod Status
+        run: |
+          kubectl get pods
+
+      # Paso 9: Limpiar recursos (opcional)
+      - name: Clean up resources (optional)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          az group delete --name myResourceGroup --yes --no-wait
