@@ -16,7 +16,7 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    vmImage: 'local-machine'
+    name: 'local-machine'
   steps:
   - checkout: self
 
