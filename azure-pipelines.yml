@@ -16,7 +16,7 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    vmImage: 'Azure Pipelines'
+    vmImage: 'local-machine'
   steps:
   - checkout: self
 
