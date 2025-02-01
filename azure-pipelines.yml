@@ -16,7 +16,7 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    name: 'local-machine'
+    name: default
   steps:
   - checkout: self
 
