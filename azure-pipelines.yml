@@ -16,7 +16,7 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    name: Default  # Reemplaza con el nombre de tu pool de agentes autohospedados si es necesario
+    vmImage: ubuntu-latest
   steps:
   - checkout: self
 
