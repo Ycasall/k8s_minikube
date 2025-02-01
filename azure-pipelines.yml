@@ -16,7 +16,7 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    vmImage: ubuntu-latest
+    vmImage: Hosted Agent
   steps:
   - checkout: self
 
