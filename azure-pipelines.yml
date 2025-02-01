@@ -16,7 +16,8 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    vmImage: Hosted Agent
+    #vmImage: Hosted Agent
+    name: 'Self-Hosted'
   steps:
   - checkout: self
 
