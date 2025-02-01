@@ -1,68 +1,88 @@
-
-name: Create AKS Cluster and Deploy App
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
+# Nombre del pipeline
+trigger:
+  branches:
+    include:
       - main
 
-jobs:
-  create-aks-cluster-and-deploy:
-    runs-on: ubuntu-latest
+pr:
+  branches:
+    include:
+      - main
 
-    steps:
-      # Paso 1: Checkout del repositorio
-      - name: Checkout repository
-        uses: actions/checkout@v3
+pool:
+  vmImage: 'ubuntu-latest' # Usa una máquina virtual Ubuntu proporcionada por Azure DevOps
 
-      # Paso 2: Iniciar sesión en Azure
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+steps:
+  # Paso 1: Checkout del repositorio
+  - checkout: self
 
-      # Paso 3: Crear un clúster de AKS (si no existe)
-      - name: Create or Update AKS Cluster
-        run: |
-          az group create --name myResourceGroup --location eastus
-          az aks create --resource-group myResourceGroup --name myAKSCluster --node-count 1 --enable-addons monitoring --generate-ssh-keys
+  # Paso 2: Iniciar sesión en Azure
+  - task: AzureCLI@2
+    displayName: 'Login to Azure'
+    inputs:
+      azureSubscription: 'your-azure-service-connection' # Reemplaza con el nombre de tu conexión de servicio de Azure
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        echo "Logged into Azure successfully."
 
-      # Paso 4: Conectar kubectl al clúster de AKS
-      - name: Connect kubectl to AKS Cluster
-        run: |
-          az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
+  # Paso 3: Crear o actualizar un clúster AKS (si no existe)
+  - task: AzureCLI@2
+    displayName: 'Create or Update AKS Cluster'
+    inputs:
+      azureSubscription: 'your-azure-service-connection' # Reemplaza con el nombre de tu conexión de servicio de Azure
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az group create --name myResourceGroup --location eastus || true
+        az aks create --resource-group myResourceGroup --name myAKSCluster --node-count 1 --enable-addons monitoring --generate-ssh-keys || true
 
-      # Paso 5: Verificar que el clúster esté funcionando
-      - name: Verify AKS Cluster
-        run: |
-          kubectl get nodes
+  # Paso 4: Conectar kubectl al clúster AKS
+  - task: AzureCLI@2
+    displayName: 'Connect kubectl to AKS Cluster'
+    inputs:
+      azureSubscription: 'your-azure-service-connection' # Reemplaza con el nombre de tu conexión de servicio de Azure
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
 
-      # Paso 6: Construir y empujar la imagen Docker al Registro de Contenedores de Azure (ACR)
-      - name: Build and Push Docker Image to ACR
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
-        run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/myapp:latest .
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/myapp:latest
+  # Paso 5: Verificar que el clúster esté funcionando
+  - script: |
+      kubectl get nodes
+    displayName: 'Verify AKS Cluster'
 
-      # Paso 7: Desplegar la aplicación en AKS
-      - name: Deploy Application to AKS
-        run: |
-          kubectl apply -f ./k8s/deployment.yaml
+  # Paso 6: Construir y empujar la imagen Docker al Registro de Contenedores de Azure (ACR)
+  - task: Docker@2
+    displayName: 'Build and Push Docker Image to ACR'
+    inputs:
+      containerRegistry: 'your-acr-connection' # Reemplaza con el nombre de tu conexión de ACR
+      repository: 'myapp'
+      command: 'buildAndPush'
+      Dockerfile: '**/Dockerfile'
+      tags: |
+        latest
 
-      # Paso 8: Verificar el estado de los pods
-      - name: Check Pod Status
-        run: |
-          kubectl get pods
+  # Paso 7: Desplegar la aplicación en AKS
+  - task: KubernetesManifest@0
+    displayName: 'Deploy Application to AKS'
+    inputs:
+      action: 'deploy'
+      manifests: |
+        ./k8s/deployment.yaml
+      kubeconfigConfiguration: |
+        $(KUBECONFIG)
 
-      # Paso 9: Limpiar recursos (opcional)
-      - name: Clean up resources (optional)
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          az group delete --name myResourceGroup --yes --no-wait
+  # Paso 8: Verificar el estado de los pods
+  - script: |
+      kubectl get pods
+    displayName: 'Check Pod Status'
+
+  # Paso 9: Limpiar recursos (opcional)
+  - script: |
+      if [ "${{ parameters.isPR }}" == "true" ]; then
+        az group delete --name myResourceGroup --yes --no-wait
+      fi
+    displayName: 'Clean up resources (optional)'
+    env:
+      isPR: ${{ github.event_name == 'pull_request' }}
