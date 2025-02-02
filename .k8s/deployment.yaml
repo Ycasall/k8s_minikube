@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: ubuntu:18.04
+          ports:
+            - containerPort: 80         
+          command: ["/bin/bash", "-c", "apt-get update && apt-get install -y python3 && python3 -m http.server 80","-c", "echo 'Hola Mundo' > index.html" ]
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          securityContext:
+            privileged: false
