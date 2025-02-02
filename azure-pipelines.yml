@@ -16,7 +16,7 @@ pr:
 jobs:
 - job: CreateMinikubeCluster
   pool:
-    name: Self-hosted
+    name: default
   steps:
   - checkout: self
 
