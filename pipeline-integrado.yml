@@ -44,8 +44,6 @@ jobs:
 
   # Paso 6: Instalar SonarScanner CLI
   - script: |
-      sudo apt-get update
-      sudo apt-get install -y openjdk-11-jdk zip unzip wget
       wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip -O sonar-scanner.zip
       unzip sonar-scanner.zip -d $HOME/sonar-scanner
       echo "export PATH=$HOME/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:\$PATH" >> $HOME/.bashrc
