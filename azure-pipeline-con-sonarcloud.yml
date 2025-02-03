@@ -1,0 +1,97 @@
+trigger:
+  branches:
+    include:
+      - main
+pr:
+  branches:
+    include:
+      - main
+
+jobs:
+- job: CreateMinikubeCluster
+  pool:
+    name: default
+  steps:
+  - checkout: self
+
+  # Paso 1: Clonar el repositorio de la página web
+  - script: |
+      git clone https://github.com/Ycasall/personal-website.git
+    displayName: 'Clone the web project repository'
+
+  # Paso 2: Verificar instalación de Docker
+  - script: |
+      docker --version
+      docker run hello-world
+      ls -l /var/run/docker.sock
+    displayName: 'Verify Docker installation'
+
+  # Paso 3: Iniciar Minikube con Docker como driver
+  - script: |
+      minikube start --driver=docker
+    displayName: 'Start Minikube cluster'
+
+  # Paso 4: Configurar kubectl para usar Minikube
+  - script: |
+      kubectl config use-context minikube
+    displayName: 'Set kubeconfig'
+
+  # Paso 5: Construir la imagen Docker desde el Dockerfile
+  - script: |
+      cd personal-website
+      docker build -t personal-website:v2 .
+    displayName: 'Build Docker image for web app'
+
+  # Paso 6: Ejecutar análisis de SonarCloud
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.x'
+      addToPath: true
+    displayName: 'Install Python'
+
+  - script: |
+      pip install sonarqube-api
+    displayName: 'Install SonarQube API'
+
+  - task: SonarQubePrepare@5
+    inputs:
+      SonarQube: 'SonarCloudConnection' # Nombre de la conexión a SonarCloud configurada en Azure DevOps
+      scannerMode: 'CLI'
+      configMode: 'manual'
+      cliProjectKey: 'personal-website' # Clave del proyecto en SonarCloud
+      extraProperties: |
+        sonar.projectName=Personal Website
+        sonar.sources=./personal-website
+    displayName: 'Prepare SonarCloud Analysis'
+
+  - script: |
+      sonar-scanner
+    displayName: 'Run SonarCloud Analysis'
+
+  - task: SonarQubePublish@5
+    inputs:
+      pollingTimeoutSec: '300'
+    displayName: 'Publish SonarCloud Results'
+
+  # Paso 7: Subir la imagen a Docker Hub (opcional)
+  - script: |
+      docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
+      docker tag personal-website:v2 efreway/personal-website:v2
+      docker push efreway/personal-website:v2
+    displayName: 'Push Docker image to Docker Hub'
+
+  # Paso 8: Desplegar la aplicación web con Kubernetes
+  - script: |
+      kubectl apply -f personal-website/deployment.yaml
+    displayName: 'Deploy web app to Minikube'
+
+  # Paso 9: Desplegar el servicio para exponer la página web
+  - script: |
+      kubectl apply -f personal-website/services.yaml
+    displayName: 'Expose web app service'
+
+  # Paso 10: Verificar estado del clúster y Pods
+  - script: |
+      kubectl get nodes
+      kubectl get pods
+    displayName: 'Check cluster and pod status'
