@@ -81,10 +81,11 @@ jobs:
       kubectl apply -f personal-website/services.yaml
     displayName: 'Expose web app service'
 
-  # Paso 10: Usar la plantilla de pruebas personalizadas con ruta verificada
-  - template: $(Build.SourcesDirectory)/pipeline-templates/custom-tests.yaml
-    parameters:
-      serviceName: 'website-personal-service'
+  # Paso 10: Ejecutar custom-tests.sh en lugar de YAML
+  - script: |
+      chmod +x pipeline-templates/custom-tests.sh
+      ./pipeline-templates/custom-tests.sh website-personal-service
+    displayName: 'Run custom tests script'
 
   # Paso 11: Verificar estado del clúster y Pods
   - script: |
