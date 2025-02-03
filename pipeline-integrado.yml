@@ -90,3 +90,19 @@ jobs:
       curl -I $(SERVICE_URL)
       curl $(SERVICE_URL)
     displayName: 'Test connectivity with curl'
+  
+  # Paso 13: Abrir el navegador con la URL del servicio
+  - script: |
+      SERVICE_URL=$(minikube service website-personal-service --url)
+      echo "Service URL: $SERVICE_URL"
+      echo "##vso[task.setvariable variable=SERVICE_URL]$SERVICE_URL"
+      
+      # Abrir el navegador según el sistema operativo
+      if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+          xdg-open "$SERVICE_URL"
+      elif [[ "$OSTYPE" == "darwin"* ]]; then
+          open "$SERVICE_URL"
+      elif [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+          start "$SERVICE_URL"
+      fi
+    displayName: 'Open Service URL in Browser'
