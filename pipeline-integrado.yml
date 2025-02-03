@@ -42,16 +42,18 @@ jobs:
       docker build -t personal-website:v2 .
     displayName: 'Build Docker image for web app'
 
-  # Paso 6: Ejecutar SonarScanner usando Docker
+  # Paso 6: Ejecutar SonarScanner usando Docker con la nueva configuración
   - script: |
       docker run --rm \
         -v "$(pwd)/personal-website:/usr/src" \
-        -e SONAR_HOST_URL="https://sonarcloud.io" \
-        -e SONAR_LOGIN="$SONAR_TOKEN" \
-        -e SONAR_PROJECT_KEY="personal-website" \
-        -e SONAR_SOURCES="." \
-        sonarsource/sonar-scanner-cli:latest
-    displayName: 'Run SonarCloud Analysis with Docker'
+        -e SONAR_HOST_URL="https://sonarqube.awsbanbogota.com" \
+        -e SONAR_LOGIN="797dd4235097a4e698ca1414bdb45199cbcd88ff" \
+        sonarsource/sonar-scanner-cli:latest \
+        -Dsonar.projectKey=ycasall-personal-webApp \
+        -Dsonar.sources=. \
+        -Dsonar.host.url=https://sonarqube.awsbanbogota.com \
+        -Dsonar.login=797dd4235097a4e698ca1414bdb45199cbcd88ff
+    displayName: 'Run SonarQube Analysis with Docker'
 
   # Paso 7: Subir la imagen a Docker Hub (opcional)
   - script: |
