@@ -56,7 +56,7 @@ jobs:
 
   # Paso 7: (Opcional) Subir la imagen a Docker Hub (solo si necesitas almacenar la imagen de forma remota)
   - script: |
-      docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
       docker tag web-app your-dockerhub-username/your-repository-name:latest
       docker push your-dockerhub-username/your-repository-name:latest
     displayName: 'Push Docker image to Docker Hub'
