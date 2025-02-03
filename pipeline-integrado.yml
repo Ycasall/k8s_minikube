@@ -47,11 +47,15 @@ jobs:
       sudo apt-get update
       sudo apt-get install -y openjdk-11-jdk zip unzip wget
       wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip -O sonar-scanner.zip
-      unzip sonar-scanner.zip -d ./sonar-scanner
-      export PATH=$(pwd)/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:$PATH
+      unzip sonar-scanner.zip -d $HOME/sonar-scanner
+      echo "export PATH=$HOME/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:\$PATH" >> $HOME/.bashrc
+      echo "export PATH=$HOME/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:\$PATH" >> $HOME/.profile
+      export PATH=$HOME/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:$PATH
       echo "PATH=$PATH"  # Verifica que el PATH contiene sonar-scanner
       sonar-scanner -v  # Verifica que el comando sonar-scanner funciona
     displayName: 'Install SonarScanner CLI'
+
+
 
   # Paso 7: Preparar el análisis de SonarCloud
   - task: SonarCloudPrepare@1
