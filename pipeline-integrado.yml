@@ -8,7 +8,7 @@ pr:
       - main
 
 jobs:
-- job: CreateMinikubeClusterSonar
+- job: CreateMinikubeCluster
   pool:
     name: default
   steps:
@@ -42,63 +42,36 @@ jobs:
       docker build -t personal-website:v2 .
     displayName: 'Build Docker image for web app'
 
-  # Paso 6: Instalar SonarScanner CLI
+  # Paso 6: Ejecutar SonarScanner usando Docker
   - script: |
-      wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip -O sonar-scanner.zip
-      unzip sonar-scanner.zip -d $HOME/sonar-scanner
-      echo "export PATH=$HOME/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:\$PATH" >> $HOME/.bashrc
-      echo "export PATH=$HOME/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:\$PATH" >> $HOME/.profile
-      export PATH=$HOME/sonar-scanner/sonar-scanner-4.8.0.2856-linux/bin:$PATH
-      echo "PATH=$PATH"  # Verifica que el PATH contiene sonar-scanner
-      sonar-scanner -v  # Verifica que el comando sonar-scanner funciona
-    displayName: 'Install SonarScanner CLI'
+      docker run --rm \
+        -v "$(pwd)/personal-website:/usr/src" \
+        -e SONAR_HOST_URL="https://sonarcloud.io" \
+        -e SONAR_LOGIN="$(SONAR_TOKEN)" \
+        -e SONAR_PROJECT_KEY="personal-website" \
+        -e SONAR_SOURCES="." \
+        sonarsource/sonar-scanner-cli:latest
+    displayName: 'Run SonarCloud Analysis with Docker'
 
-
-
-  # Paso 7: Preparar el análisis de SonarCloud
-  - task: SonarCloudPrepare@1
-    inputs:
-      SonarCloud: 'SonarCloudConnection'  # Nombre de la conexión de servicio de SonarCloud
-      organization: 'efreway'
-      scannerMode: 'CLI'
-      configMode: 'manual'
-      cliProjectKey: 'personal-website'  # Clave del proyecto en SonarCloud
-      extraProperties: |
-        sonar.projectName=Personal Website
-        sonar.sources=./personal-website
-    displayName: 'Prepare SonarCloud Analysis'
-
-  # Paso 8: Ejecutar el análisis de SonarCloud
-  - script: |
-      sonar-scanner \
-        -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.login=$(SONAR_TOKEN)  # Usar el secreto SONAR_TOKEN
-    displayName: 'Run SonarCloud Analysis'
-
-  # Paso 9: Publicar los resultados en SonarCloud
-  - task: SonarCloudPublish@1
-    inputs:
-      pollingTimeoutSec: '300'
-    displayName: 'Publish SonarCloud Results'
-
-  # Paso 10: Subir la imagen a Docker Hub (opcional)
+  # Paso 7: Subir la imagen a Docker Hub (opcional)
   - script: |
       docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
       docker tag personal-website:v2 efreway/personal-website:v2
       docker push efreway/personal-website:v2
     displayName: 'Push Docker image to Docker Hub'
 
-  # Paso 11: Desplegar la aplicación web con Kubernetes
+  # Paso 8: Desplegar la aplicación web con Kubernetes
   - script: |
       kubectl apply -f personal-website/deployment.yaml
     displayName: 'Deploy web app to Minikube'
 
-  # Paso 12: Desplegar el servicio para exponer la página web
+  # Paso 9: Desplegar el servicio para exponer la página web
   - script: |
       kubectl apply -f personal-website/services.yaml
     displayName: 'Expose web app service'
 
-  # Paso 13: Verificar estado del clúster y Pods
+  # Paso 10: Verificar estado del clúster y Pods
   - script: |
       kubectl get nodes
-    displayName: 'Check Minikube cluster status'
+      kubectl get pods
+    displayName: 'Check cluster and pod status'
