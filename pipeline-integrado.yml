@@ -9,22 +9,17 @@ pr:
       - main
       - develop
 
-resources:
-  repositories:
-  - repository: templates
-    type: git
-    name: Ycasall/pipeline-templates
-    ref: main
-
 jobs:
 - job: CreateMinikubeClusterSonar
   pool:
     name: default
   steps:
-  # Paso 1: Clonar el repositorio de la página web
+  # Paso 1: Clonar los repositorios manualmente y verificar estructura
   - script: |
       git clone https://github.com/Ycasall/personal-website.git
-    displayName: 'Clone the web project repository'
+      git clone https://github.com/Ycasall/pipeline-templates.git
+      ls -R pipeline-templates
+    displayName: 'Clone repositories and check structure'
 
   # Paso 2: Verificar instalación de Docker
   - script: |
@@ -51,9 +46,9 @@ jobs:
 
   # Paso 6: Ejecutar SonarScanner usando Docker
   - script: |
-      export SONAR_HOST_URL=$(cat pipeline-templates/sonar-config.yaml | grep hostUrl | awk '{print $2}' | tr -d '"')
-      export SONAR_LOGIN=$(cat pipeline-templates/sonar-config.yaml | grep loginToken | awk '{print $2}' | tr -d '"')
-      export SONAR_PROJECT_KEY=$(cat pipeline-templates/sonar-config.yaml | grep projectKey | awk '{print $2}' | tr -d '"')
+      export SONAR_HOST_URL=$(cat ./pipeline-templates/sonar-config.yaml | grep hostUrl | awk '{print $2}' | tr -d '"')
+      export SONAR_LOGIN=$(cat ./pipeline-templates/sonar-config.yaml | grep loginToken | awk '{print $2}' | tr -d '"')
+      export SONAR_PROJECT_KEY=$(cat ./pipeline-templates/sonar-config.yaml | grep projectKey | awk '{print $2}' | tr -d '"')
       echo "##vso[task.setvariable variable=SONAR_HOST_URL]$SONAR_HOST_URL"
       echo "##vso[task.setvariable variable=SONAR_LOGIN]$SONAR_LOGIN"
       echo "##vso[task.setvariable variable=SONAR_PROJECT_KEY]$SONAR_PROJECT_KEY"
@@ -81,13 +76,13 @@ jobs:
       kubectl apply -f personal-website/deployment.yaml
     displayName: 'Deploy web app to Minikube'
 
- # Paso 9: Desplegar el servicio para exponer la página web
+  # Paso 9: Desplegar el servicio para exponer la página web
   - script: |
       kubectl apply -f personal-website/services.yaml
     displayName: 'Expose web app service'
 
-  # Paso 10: Usar la plantilla de pruebas personalizadas
-  - template: custom-tests.yaml@templates
+  # Paso 10: Usar la plantilla de pruebas personalizadas con ruta verificada
+  - template: $(Build.SourcesDirectory)/pipeline-templates/custom-tests.yaml
     parameters:
       serviceName: 'website-personal-service'
 
