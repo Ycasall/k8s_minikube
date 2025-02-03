@@ -77,3 +77,16 @@ jobs:
       kubectl get nodes
       kubectl get pods
     displayName: 'Check cluster and pod status'
+
+  # Paso 11: Obtener la URL del servicio expuesto
+  - script: |
+      export SERVICE_URL=$(minikube service website-personal-service --url)
+      echo "Service URL: $SERVICE_URL"
+      echo "##vso[task.setvariable variable=SERVICE_URL]$SERVICE_URL"
+    displayName: 'Get Service URL'
+
+  # Paso 12: Probar la conectividad con curl
+  - script: |
+      curl -I $(SERVICE_URL)
+      curl $(SERVICE_URL)
+    displayName: 'Test connectivity with curl'
