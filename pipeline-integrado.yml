@@ -2,18 +2,25 @@ trigger:
   branches:
     include:
       - main
+      - develop
 pr:
   branches:
     include:
       - main
+      - develop
+
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    name: Ycasall/pipeline-templates
+    ref: main
 
 jobs:
-- job: CreateMinikubeCluster
+- job: CreateMinikubeClusterSonar
   pool:
     name: default
   steps:
-  - checkout: self
-
   # Paso 1: Clonar el repositorio de la página web
   - script: |
       git clone https://github.com/Ycasall/personal-website.git
@@ -42,17 +49,24 @@ jobs:
       docker build -t personal-website:v2 .
     displayName: 'Build Docker image for web app'
 
-  # Paso 6: Ejecutar SonarScanner usando Docker con la nueva configuración
+  # Paso 6: Ejecutar SonarScanner usando Docker
   - script: |
+      export SONAR_HOST_URL=$(cat pipeline-templates/sonar-config.yaml | grep hostUrl | awk '{print $2}' | tr -d '"')
+      export SONAR_LOGIN=$(cat pipeline-templates/sonar-config.yaml | grep loginToken | awk '{print $2}' | tr -d '"')
+      export SONAR_PROJECT_KEY=$(cat pipeline-templates/sonar-config.yaml | grep projectKey | awk '{print $2}' | tr -d '"')
+      echo "##vso[task.setvariable variable=SONAR_HOST_URL]$SONAR_HOST_URL"
+      echo "##vso[task.setvariable variable=SONAR_LOGIN]$SONAR_LOGIN"
+      echo "##vso[task.setvariable variable=SONAR_PROJECT_KEY]$SONAR_PROJECT_KEY"
+
       docker run --rm \
         -v "$(pwd)/personal-website:/usr/src" \
-        -e SONAR_HOST_URL="https://sonarqube.awsbanbogota.com" \
-        -e SONAR_LOGIN="797dd4235097a4e698ca1414bdb45199cbcd88ff" \
+        -e SONAR_HOST_URL="$(SONAR_HOST_URL)" \
+        -e SONAR_LOGIN="$(SONAR_LOGIN)" \
         sonarsource/sonar-scanner-cli:latest \
-        -Dsonar.projectKey=ycasall-personal-webApp \
+        -Dsonar.projectKey=$(SONAR_PROJECT_KEY) \
         -Dsonar.sources=. \
-        -Dsonar.host.url=https://sonarqube.awsbanbogota.com \
-        -Dsonar.login=797dd4235097a4e698ca1414bdb45199cbcd88ff
+        -Dsonar.host.url=$(SONAR_HOST_URL) \
+        -Dsonar.login=$(SONAR_LOGIN)
     displayName: 'Run SonarQube Analysis with Docker'
 
   # Paso 7: Subir la imagen a Docker Hub (opcional)
@@ -67,42 +81,18 @@ jobs:
       kubectl apply -f personal-website/deployment.yaml
     displayName: 'Deploy web app to Minikube'
 
-  # Paso 9: Desplegar el servicio para exponer la página web
+ # Paso 9: Desplegar el servicio para exponer la página web
   - script: |
       kubectl apply -f personal-website/services.yaml
     displayName: 'Expose web app service'
 
-  # Paso 10: Verificar estado del clúster y Pods
+  # Paso 10: Usar la plantilla de pruebas personalizadas
+  - template: custom-tests.yaml@templates
+    parameters:
+      serviceName: 'website-personal-service'
+
+  # Paso 11: Verificar estado del clúster y Pods
   - script: |
       kubectl get nodes
       kubectl get pods
     displayName: 'Check cluster and pod status'
-
-  # Paso 11: Obtener la URL del servicio expuesto
-  - script: |
-      export SERVICE_URL=$(minikube service website-personal-service --url)
-      echo "Service URL: $SERVICE_URL"
-      echo "##vso[task.setvariable variable=SERVICE_URL]$SERVICE_URL"
-    displayName: 'Get Service URL'
-
-  # Paso 12: Probar la conectividad con curl
-  - script: |
-      curl -I $(SERVICE_URL)
-      curl $(SERVICE_URL)
-    displayName: 'Test connectivity with curl'
-  
-  # Paso 13: Abrir el navegador con la URL del servicio
-  - script: |
-      SERVICE_URL=$(minikube service website-personal-service --url)
-      echo "Service URL: $SERVICE_URL"
-      echo "##vso[task.setvariable variable=SERVICE_URL]$SERVICE_URL"
-      
-      # Abrir el navegador según el sistema operativo
-      if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-          xdg-open "$SERVICE_URL"
-      elif [[ "$OSTYPE" == "darwin"* ]]; then
-          open "$SERVICE_URL"
-      elif [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-          start "$SERVICE_URL"
-      fi
-    displayName: 'Open Service URL in Browser'
