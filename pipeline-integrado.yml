@@ -8,7 +8,7 @@ pr:
       - main
 
 jobs:
-- job: CreateMinikubeCluster
+- job: CreateMinikubeClusterSonar
   pool:
     name: default
   steps:
@@ -68,7 +68,7 @@ jobs:
   - script: |
       sonar-scanner \
         -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.login=$(SONAR_TOKEN)  # Usa el secreto SONAR_TOKEN
+        -Dsonar.login=$(SONAR_TOKEN)  # Usar el secreto SONAR_TOKEN
     displayName: 'Run SonarCloud Analysis'
 
   # Paso 9: Publicar los resultados en SonarCloud
