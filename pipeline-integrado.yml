@@ -44,24 +44,20 @@ jobs:
       docker build -t personal-website:v2 .
     displayName: 'Build Docker image for web app'
 
-  # Paso 6: Ejecutar SonarScanner usando Docker
+  # Paso 6: Ejecutar SonarScanner con configuración desde script
   - script: |
-      export SONAR_HOST_URL=$(cat ./pipeline-templates/sonar-config.yaml | grep hostUrl | awk '{print $2}' | tr -d '"')
-      export SONAR_LOGIN=$(cat ./pipeline-templates/sonar-config.yaml | grep loginToken | awk '{print $2}' | tr -d '"')
-      export SONAR_PROJECT_KEY=$(cat ./pipeline-templates/sonar-config.yaml | grep projectKey | awk '{print $2}' | tr -d '"')
-      echo "##vso[task.setvariable variable=SONAR_HOST_URL]$SONAR_HOST_URL"
-      echo "##vso[task.setvariable variable=SONAR_LOGIN]$SONAR_LOGIN"
-      echo "##vso[task.setvariable variable=SONAR_PROJECT_KEY]$SONAR_PROJECT_KEY"
+      chmod +x pipeline-templates/sonar-config.sh
+      source pipeline-templates/sonar-config.sh
 
       docker run --rm \
         -v "$(pwd)/personal-website:/usr/src" \
-        -e SONAR_HOST_URL="$(SONAR_HOST_URL)" \
-        -e SONAR_LOGIN="$(SONAR_LOGIN)" \
+        -e SONAR_HOST_URL="$SONAR_HOST_URL" \
+        -e SONAR_LOGIN="$SONAR_LOGIN" \
         sonarsource/sonar-scanner-cli:latest \
-        -Dsonar.projectKey=$(SONAR_PROJECT_KEY) \
+        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
         -Dsonar.sources=. \
-        -Dsonar.host.url=$(SONAR_HOST_URL) \
-        -Dsonar.login=$(SONAR_LOGIN)
+        -Dsonar.host.url=$SONAR_HOST_URL \
+        -Dsonar.login=$SONAR_LOGIN
     displayName: 'Run SonarQube Analysis with Docker'
 
   # Paso 7: Subir la imagen a Docker Hub (opcional)
