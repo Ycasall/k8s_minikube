@@ -63,7 +63,7 @@ jobs:
 
   # Paso 8: Desplegar la aplicación web con Kubernetes
   - script: |
-      kubectl apply -f Project-basic-web/.k8s/deployment.yaml
+      kubectl apply -f deployment.yaml
     displayName: 'Deploy web app to Minikube'
 
   # Paso 9: Verificar que el clúster de Minikube esté funcionando
