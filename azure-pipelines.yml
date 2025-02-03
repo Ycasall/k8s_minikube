@@ -54,12 +54,17 @@ jobs:
       docker build -t web-app .
     displayName: 'Build Docker image for web app'
 
-  # Paso 7: (Opcional) Subir la imagen a Docker Hub (solo si necesitas almacenar la imagen de forma remota)
+  # Paso 7: (Opcional) Subir la imagen a Docker Hub (solo si necesito almacenar la imagen de forma remota)
   - script: |
       docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
       docker tag web-app efreway/my-web-app:latest
       docker push efreway/my-web-app:latest
     displayName: 'Push Docker image to Docker Hub'
+    
+  # Paso 7-1: Verificar los archivos después de clonar el repositorio
+  - script: |
+      ls -al
+    displayName: 'List files in the root directory'
 
   # Paso 8: Desplegar la aplicación web con Kubernetes
   - script: |
