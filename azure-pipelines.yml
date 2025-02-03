@@ -17,7 +17,7 @@ jobs:
 
   # Paso 1: Clonar el repositorio de la página web (aunque ya lo hace `checkout: self`, no es necesario, se deja por si acaso)
   - script: |
-      git clone https://github.com/Ycasall/Project-basic-web.git
+      git clone https://github.com/Ycasall/personal-website.git
     displayName: 'Clone the web project repository'
 
   # Paso 2: Instalar Docker
@@ -58,7 +58,7 @@ jobs:
   - script: |
       docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
       docker tag web-app efreway/my-web-app:latest
-      docker push efreway/my-web-app:latest
+      docker push efreway/personal-website:v1
     displayName: 'Push Docker image to Docker Hub'
     
   # Paso 7-1: Verificar los archivos después de clonar el repositorio
@@ -70,7 +70,7 @@ jobs:
 
   # Paso 8: Desplegar la aplicación web con Kubernetes
   - script: |
-      kubectl apply -f Project-basic-web/deployment.yaml
+      kubectl apply -f personal-website/deployment.yaml
     displayName: 'Deploy web app to Minikube'
 
   # Paso 9: Verificar que el clúster de Minikube esté funcionando
