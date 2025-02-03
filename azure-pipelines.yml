@@ -58,7 +58,7 @@ jobs:
   - script: |
       docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
       docker tag web-app efreway/my-web-app:latest
-      docker push efreway/personal-website:v1
+      docker push efreway/personal-website:v2
     displayName: 'Push Docker image to Docker Hub'
     
   # Paso 7-1: Verificar los archivos después de clonar el repositorio
