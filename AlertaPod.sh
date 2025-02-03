@@ -10,7 +10,7 @@ export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Credentials.SessionToken'
 
 # Variables
 NAMESPACE="default"
-SNS_TOPIC_ARN="arn:aws:sns:us-east-1:125146271723:AlertasEstadoPodsError"
+SNS_TOPIC_ARN="arn:aws:sns:us-east-1:682380910661:AlertasEstadoPodsError"
 DEPLOYMENT_FILE="./k8s/deployment.yaml"
 S3_BUCKET="bdb-archivos"
 
