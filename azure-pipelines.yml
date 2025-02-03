@@ -50,7 +50,7 @@ jobs:
 
   # Paso 6: Construir la imagen Docker desde el Dockerfile
   - script: |
-      cd personal-website  # Asegúrate de estar en el directorio correcto
+      cd personal-website  # Asegurar de estar en el directorio correcto
       docker build -t personal-website:v1 .
     displayName: 'Build Docker image for web app'
 
