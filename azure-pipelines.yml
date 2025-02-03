@@ -64,11 +64,13 @@ jobs:
   # Paso 7-1: Verificar los archivos después de clonar el repositorio
   - script: |
       ls -al
+      cd Project-basic-web
+      ls -al
     displayName: 'List files in the root directory'
 
   # Paso 8: Desplegar la aplicación web con Kubernetes
   - script: |
-      kubectl apply -f deployment.yaml
+      kubectl apply -f Project-basic-web/deployment.yaml
     displayName: 'Deploy web app to Minikube'
 
   # Paso 9: Verificar que el clúster de Minikube esté funcionando
