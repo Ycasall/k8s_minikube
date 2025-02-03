@@ -57,7 +57,7 @@ jobs:
   # Paso 7: (Opcional) Subir la imagen a Docker Hub (solo si necesito almacenar la imagen de forma remota)
   - script: |
       docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
-      docker tag web-app efreway/my-web-app:latest
+      docker tag personal-website:v2 efreway/personal-website:v2
       docker push efreway/personal-website:v2
     displayName: 'Push Docker image to Docker Hub'
     
