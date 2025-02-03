@@ -1,19 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-app-deployment
+  name: web-app-deployment  # Nombre del Deployment (puedes cambiarlo)
 spec:
-  replicas: 1
+  replicas: 1  # Número de réplicas del pod
   selector:
     matchLabels:
-      app: web-app
+      app: web-app  # Etiqueta para identificar este deployment
   template:
     metadata:
       labels:
-        app: web-app
+        app: web-app  # Etiqueta para identificar los pods que pertenecen a este deployment
     spec:
       containers:
-      - name: web-app
-        image: web-app:latest  # Aquí se usa la imagen construida en el paso anterior
-        ports:
-        - containerPort: 80
+        - name: web-app  # Nombre del contenedor
+          image: web-app:latest  # La imagen Docker que creaste (en este caso 'web-app', que es la etiqueta que usaste al construirla)
+          ports:
+            - containerPort: 80  # Puerto en el que el contenedor va a escuchar (para Nginx, típicamente es el puerto 80)
+          resources:
+            limits:
+              memory: "512Mi"  # Límite de memoria (puedes ajustarlo según lo que necesites)
+              cpu: "500m"  # Límite de CPU (puedes ajustarlo también)
+          securityContext:
+            privileged: false  # No estamos usando privilegios elevados
