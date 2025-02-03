@@ -73,6 +73,11 @@ jobs:
       kubectl apply -f personal-website/deployment.yaml
     displayName: 'Deploy web app to Minikube'
 
+  # Paso 8-1: Desplegar POD de servicio para exponer la pagina web
+  - script: |
+      kubectl apply -f personal-website/services.yaml
+    displayName: 'Deploy web app to Minikube'
+
   # Paso 9: Verificar que el clúster de Minikube esté funcionando
   - script: |
       kubectl get nodes
