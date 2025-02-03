@@ -52,12 +52,12 @@ jobs:
     displayName: 'Install SonarScanner CLI'
 
   # Paso 7: Preparar el análisis de SonarCloud
-  - task: SonarQubePrepare@5
+  - task: SonarCloudPrepare@1
     inputs:
-      SonarQube: 'SonarCloudConnection' # Nombre de la conexión a SonarCloud
+      SonarCloud: 'SonarCloudConnection'  # Nombre de la conexión de servicio de SonarCloud
       scannerMode: 'CLI'
       configMode: 'manual'
-      cliProjectKey: 'personal-website' # Clave del proyecto en SonarCloud
+      cliProjectKey: 'personal-website'  # Clave del proyecto en SonarCloud
       extraProperties: |
         sonar.projectName=Personal Website
         sonar.sources=./personal-website
@@ -67,11 +67,11 @@ jobs:
   - script: |
       sonar-scanner \
         -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.login=$(SONAR_TOKEN) # Usa el secreto SONAR_TOKEN
+        -Dsonar.login=$(SONAR_TOKEN)  # Usa el secreto SONAR_TOKEN
     displayName: 'Run SonarCloud Analysis'
 
   # Paso 9: Publicar los resultados en SonarCloud
-  - task: SonarQubePublish@5
+  - task: SonarCloudPublish@1
     inputs:
       pollingTimeoutSec: '300'
     displayName: 'Publish SonarCloud Results'
@@ -96,3 +96,4 @@ jobs:
   # Paso 13: Verificar estado del clúster y Pods
   - script: |
       kubectl get nodes
+    displayName: 'Check Minikube cluster status'
