@@ -47,7 +47,7 @@ jobs:
       docker run --rm \
         -v "$(pwd)/personal-website:/usr/src" \
         -e SONAR_HOST_URL="https://sonarcloud.io" \
-        -e SONAR_LOGIN="$(SONAR_TOKEN)" \
+        -e SONAR_LOGIN="$SONAR_TOKEN" \
         -e SONAR_PROJECT_KEY="personal-website" \
         -e SONAR_SOURCES="." \
         sonarsource/sonar-scanner-cli:latest
