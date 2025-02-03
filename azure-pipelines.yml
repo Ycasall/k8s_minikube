@@ -50,8 +50,8 @@ jobs:
 
   # Paso 6: Construir la imagen Docker desde el Dockerfile
   - script: |
-      cd Project-basic-web  # Asegúrate de estar en el directorio correcto
-      docker build -t web-app .
+      cd personal-website  # Asegúrate de estar en el directorio correcto
+      docker build -t personal-website:v1 .
     displayName: 'Build Docker image for web app'
 
   # Paso 7: (Opcional) Subir la imagen a Docker Hub (solo si necesito almacenar la imagen de forma remota)
