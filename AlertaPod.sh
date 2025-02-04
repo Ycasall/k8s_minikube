@@ -12,7 +12,7 @@ export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Credentials.SessionToken'
 NAMESPACE="default"
 SNS_TOPIC_ARN="arn:aws:sns:us-east-1:682380910661:sns_minikube"
 DEPLOYMENT_FILE="./k8s/deployment.yaml"
-S3_BUCKET="minikube-logs"
+S3_BUCKET="minikubelogs"
 
 # 📌 Validar conexión con S3
 echo "🔍 Verificando acceso a S3..."
