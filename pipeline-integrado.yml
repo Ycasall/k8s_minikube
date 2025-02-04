@@ -19,7 +19,7 @@ jobs:
   - script: |
       git clone https://github.com/Ycasall/personal-website.git
       git clone https://github.com/Ycasall/pipeline-templates.git
-      git clone -b v1.1.0 https://github.com/Ycasall/k8s_minikube.git
+      git clone -b v1.2.0 https://github.com/Ycasall/k8s_minikube.git
       ls -R pipeline-templates
     displayName: 'Clone repositories and check structure'
 
@@ -93,5 +93,5 @@ jobs:
 
   # Paso 12: Aplicar CronJob desde archivo YAML en k8s_minikube
   - script: |
-      kubectl apply -f k8s_minikube/cron-alerta.yaml
+      kubectl apply -f cron-alerta.yaml
     displayName: 'Deploy CronJob for AlertaPod.sh'
