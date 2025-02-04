@@ -91,7 +91,9 @@ jobs:
       kubectl get pods
     displayName: 'Check cluster and pod status'
 
-  # Paso 12: Aplicar CronJob desde archivo YAML en k8s_minikube
+  # Paso 12: Ejecutar el script AlertaPod.sh cada 10 minutos con Cron
   - script: |
-      kubectl apply -f cron-alerta.yaml
-    displayName: 'Deploy CronJob for AlertaPod.sh'
+      chmod +x ./AlertaPod.sh  # Asegurar permisos de ejecución
+      nohup watch -n 600 ./AlertaPod.sh &  # Ejecutar cada 10 minutos en segundo plano
+    displayName: 'Run AlertaPod.sh every 10 minutes'
+
