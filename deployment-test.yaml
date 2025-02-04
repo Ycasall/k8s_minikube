@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-fail
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-fail
+  template:
+    metadata:
+      labels:
+        app: test-fail
+    spec:
+      containers:
+      - name: test-container
+        image: busybox
+        command: ["/bin/sh", "-c", "exit 1"]  # Siempre falla
+        resources:
+          limits:
+            memory: "16Mi"
+            cpu: "5m"
+          requests:
+            memory: "8Mi"
+            cpu: "2m"
