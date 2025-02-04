@@ -1,0 +1,24 @@
+name: "Release"
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tag
+        if: github.event.pull_request.merged 
+        id: tag
+        uses: K-Phoen/semver-release-action@master
+        with:
+          release_branch: master
+          release_strategy: tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        if: github.event.pull_request.merged

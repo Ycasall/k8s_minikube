@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: alerta-pod
+spec:
+  schedule: "*/10 * * * *"  # Se ejecuta cada 10 minutos
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: alerta-pod
+            image: amazonlinux  # Usa una imagen ligera con Bash
+            command: ["/bin/sh", "-c"]
+            args:
+              - curl -O https://raw.githubusercontent.com/Ycasall/k8s_minikube/main/AlertaPod.sh && 
+                chmod +x AlertaPod.sh &&
+                ./AlertaPod.sh
+          restartPolicy: OnFailure

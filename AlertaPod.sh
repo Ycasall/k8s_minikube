@@ -10,9 +10,27 @@ export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Credentials.SessionToken'
 
 # Variables
 NAMESPACE="default"
-SNS_TOPIC_ARN="arn:aws:sns:us-east-1:682380910661:AlertasEstadoPodsError"
+SNS_TOPIC_ARN="arn:aws:sns:us-east-1:682380910661:sns_minikube"
 DEPLOYMENT_FILE="./k8s/deployment.yaml"
-S3_BUCKET="bdb-archivos"
+S3_BUCKET="minikubelogs"
+
+# 📌 Validar conexión con S3
+echo "🔍 Verificando acceso a S3..."
+if aws s3 ls "s3://$S3_BUCKET" > /dev/null 2>&1; then
+    echo "✅ Conexión a S3 exitosa."
+else
+    echo "❌ Error: No se pudo acceder al bucket S3: $S3_BUCKET"
+    exit 1
+fi
+
+# 📌 Validar conexión con SNS
+echo "🔍 Verificando acceso a SNS..."
+if aws sns get-topic-attributes --topic-arn "$SNS_TOPIC_ARN" > /dev/null 2>&1; then
+    echo "✅ Conexión a SNS exitosa."
+else
+    echo "❌ Error: No se pudo acceder al tópico SNS: $SNS_TOPIC_ARN"
+    exit 1
+fi
 
 # Obtener el estado de los pods
 pods=$(kubectl get pods -n $NAMESPACE --no-headers)
